@@ -1,0 +1,16 @@
+<!-- Part I：Web 版一键启动（导航 + rosbridge + hrp_follower） -->
+<launch>
+  <!-- 1. 小车导航栈（move_base + AMCL + EKF + map_server） -->
+  <include file="$(find rm_ep_navigation)/launch/navigation.launch">
+    <arg name="map_name" value="$(arg map_name)"/>
+    <arg name="use_hi12" value="true"/>
+  </include>
+
+  <!-- 2. rosbridge（给 WebRop 用） -->
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    <arg name="port" value="9090"/>
+  </include>
+
+  <!-- 3. 路径跟随节点（/hrp_path → move_base） -->
+  <node name="hrp_follower_node" pkg="mrrep_bridge" type="hrp_follower_node.py" output="screen"/>
+</launch>

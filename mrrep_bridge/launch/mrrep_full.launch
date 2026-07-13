@@ -1,0 +1,20 @@
+<!-- Part II：完整版一键启动（导航 + rosbridge + ROS-TCP-Endpoint + hrp_follower）
+     WebRop 和 HoloLens2 同时可连，都发 /hrp_path。 -->
+<launch>
+  <!-- 1. 小车导航栈 -->
+  <include file="$(find rm_ep_navigation)/launch/navigation.launch">
+    <arg name="map_name" value="$(arg map_name)"/>
+    <arg name="use_hi12" value="true"/>
+  </include>
+
+  <!-- 2. rosbridge（给 WebRop，:9090） -->
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    <arg name="port" value="9090"/>
+  </include>
+
+  <!-- 3. ROS-TCP-Endpoint（给 HoloLens2，:10000；main 分支 = ROS1） -->
+  <include file="$(find ros_tcp_endpoint)/launch/endpoint.launch"/>
+
+  <!-- 4. 两客户端共用的路径跟随节点 -->
+  <node name="hrp_follower_node" pkg="mrrep_bridge" type="hrp_follower_node.py" output="screen"/>
+</launch>

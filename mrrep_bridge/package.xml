@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mrrep_bridge</name>
+  <version>0.1.0</version>
+  <description>
+    MRReP 整合胶水包：订阅 /hrp_path (nav_msgs/Path)，逐点喂给 move_base，
+    让机器人按手绘路径跟随导航。WebRop（rosbridge）和 HoloLens2（ROS-TCP）共用此节点。
+  </description>
+  <maintainer email="weixing@todo.com">weixing</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>move_base_msgs</exec_depend>
+  <exec_depend>actionlib</exec_depend>
+  <exec_depend>actionlib_msgs</exec_depend>
+  <exec_depend>move_base</exec_depend>
+</package>

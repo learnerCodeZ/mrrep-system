@@ -1,0 +1,68 @@
+# === ROS ===
+build/
+devel/
+install/
+logs/
+.catkin_tools/
+.codelite/
+CATKIN_IGNORE
+msg_gen/
+srv_gen/
+
+# === Unity ===
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+MemoryCaptures/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.mdb
+*.opendb
+*.VC.db
+sysinfo.txt
+# UWP / HL2 构建产物
+*.appx
+*.appxbundle
+*.appxupload
+*.msix
+*.pfx
+*.apk
+*.aab
+*.unitypackage
+crashlytics-build.properties
+
+# === Node / WebRop ===
+node_modules/
+dist/
+.vite/
+.next/
+*.log
+npm-debug.log*
+.env
+.env.local
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+
+# === IDE / OS ===
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
