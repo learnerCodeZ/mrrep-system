@@ -9,3 +9,4 @@ topics:
     topic: /cmd_vel_raw     # move_base 自主（仅 nav 模式有；map/teleop 模式空着，twist_mux 直通 teleop）
     timeout: 0.2
     priority: 1
+locks: []                   # 无锁（部分 twist_mux 版本要求此键存在）

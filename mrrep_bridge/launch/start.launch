@@ -26,8 +26,8 @@
   </include>
 
   <!-- ===== 公共：twist_mux（手动 /teleop_vel 优先，自动 /cmd_vel_raw 次之 → /cmd_vel）===== -->
-  <node name="twist_mux" pkg="twist_mux" type="twist_mux"
-        args="$(find mrrep_bridge)/config/twist_mux.yaml" output="screen">
+  <node name="twist_mux" pkg="twist_mux" type="twist_mux" output="screen">
+    <rosparam file="$(find mrrep_bridge)/config/twist_mux.yaml" command="load"/>
     <remap from="cmd_vel" to="/cmd_vel"/>
   </node>
 
