@@ -4,7 +4,7 @@
 
 | 机器 | 跑什么 | 系统 |
 |---|---|---|
-| **机器人 PC**（Jetson/Ubuntu 台式机） | ROS1 Noetic + 小车驱动 + 导航 + rosbridge + ROS-TCP-Endpoint + `hrp_follower_node` | Ubuntu 20.04 |
+| **机器人 PC**（Jetson/Ubuntu 台式机） | ROS1 Noetic + 小车驱动 + 导航 + rosbridge + twist_mux + `hrp_follower_node`（HL2 阶段再加 ROS-TCP-Endpoint） | Ubuntu 20.04 |
 | **开发 PC**（你的电脑） | WebRop（Node）、Unity 开发 HL2 | Windows/Mac |
 
 两台在同一局域网。机器人 PC 记下 IP（`hostname -I`），假设 `192.168.1.50`。
@@ -22,10 +22,19 @@ mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/src
 git clone https://github.com/learnerCodeZ/mrrep-system.git
 cd mrrep-system && bash setup.sh        # 自动拉取 EP_navigation_Ros1 / ROS-TCP-Endpoint / WebRop / MRRP-Navigation + catkin_make
 source ~/catkin_ws/devel/setup.bash
+sudo apt install -y ros-noetic-twist-mux     # 一键启动 start.launch 需要（手动接管）
 ```
 > `setup.sh` 会把 `mrrep_bridge`（本仓库子目录）一并编译——catkin 自动发现 src 下的包。
+> 想让 `mrrep_bridge` 和小车仓库物理隔离，也可另建 overlay 工作区（如 `~/mrrep_ws`）单独放 mrrep-system，运行时 `source` 两个工作区。
 
 ### 3. 建图（maps/ 出厂为空，必须先建）
+**推荐**：用一键启动的建图模式（WebRop 里 WASD 开车，点 SlamPanel 的 stop/save 存图）：
+```bash
+roslaunch mrrep_bridge start.launch mode:=map            # 起 gmapping + slam_bridge + rosbridge
+```
+然后 WebRop 连 `ws://机器人IP:9090`，WASD 开车走一圈，地图实时长出；点 **SlamPanel 的 stop/save** 存图（`slam_bridge` 自动调 `save_map.sh`）。
+
+或老办法（不开 WebRop，键盘遥控建图）：
 ```bash
 roslaunch rm_ep_navigation mapping.launch use_hi12:=true   # 终端1
 rosrun  rm_ep_driver ep_teleop_keyboard.py                 # 终端2，遥控走一圈
@@ -37,13 +46,15 @@ rosrun  rm_ep_navigation save_map.sh mymap                 # 终端3，存图
 - 放行端口：`sudo ufw allow 9090 && sudo ufw allow 10000`（或 `sudo ufw disable` 测试用）。
 - 确认 rosbridge 监听 0.0.0.0：启动后 `ss -tlnp | grep 9090` 应是 `0.0.0.0:9090`。
 
-### 5. 启动
+### 5. 一键启动（`start.launch`，三模式）
 ```bash
-# Part I（先跑通 Web 版）：
-roslaunch mrrep_bridge mrrep_web.launch map_name:=mymap
-# Part II（加 HoloLens2）：
-roslaunch mrrep_bridge mrrep_full.launch map_name:=mymap
+source ~/catkin_ws/devel/setup.bash
+roslaunch mrrep_bridge start.launch mode:=nav   map_name:=mymap   # 🧭 导航：画路径自主走 + 键盘随时接管
+roslaunch mrrep_bridge start.launch mode:=map                     # 🗺️ 建图
+roslaunch mrrep_bridge start.launch mode:=teleop                  # 🎮 纯手动
 ```
+> 三模式都自动起 rosbridge(:9090) + twist_mux；nav 模式另起 navigation.launch + hrp_follower。详细参数/机制/排错见 **[Usage_Guide.md](Usage_Guide.md)**。
+> （HL2 阶段在 nav 基础上再加 ROS-TCP-Endpoint，用 `mrrep_full.launch` 或在 start.launch 上扩展。）
 
 ---
 
@@ -88,6 +99,7 @@ cd WebRop && npm install && npm run dev      # http://localhost:3000
 - [ ] RViz "2D Nav Goal" 小车会走（move_base 全栈 OK）
 - [ ] WebRop 连上能看到真地图 + 真车（`/map`、`/odom` 通）
 - [ ] WebRop 画路径 → 小车沿形状走（**Part I 核心**）
+- [ ] 导航时按 WebRop 键盘 → 立即手动接管，松手回自主（twist_mux OK）
 - [ ] Unity 里发 `/hrp_path` → 小车跟随（Part II 通信通）
 - [ ] 戴 HL2 地面画路径 → 小车跟随（**最终复现**）
 
