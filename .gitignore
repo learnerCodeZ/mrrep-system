@@ -66,3 +66,7 @@ venv/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# === 本地 / 个人文件夹（仅本机，绝不提交）===
+# 放机器状况、个人笔记、IP 等本地备忘。任何人 clone 后自己建 local/，勿 push。
+local/
