@@ -1,0 +1,11 @@
+# twist_mux 配置：手动(WebRop 键盘)优先于自主(move_base)
+# 高优先级数字 = 先用。teleop 在 0.5s 内有发就接管；超时则回 navigation。
+topics:
+  - name: teleop
+    topic: /teleop_vel      # WebRop 键盘遥控
+    timeout: 0.5
+    priority: 10
+  - name: navigation
+    topic: /cmd_vel_raw     # move_base 自主（仅 nav 模式有；map/teleop 模式空着，twist_mux 直通 teleop）
+    timeout: 0.2
+    priority: 1
