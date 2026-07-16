@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package()
 
 # 安装 Python 节点
-catkin_install_python(PROGRAMS scripts/hrp_follower_node.py scripts/slam_bridge.py
+catkin_install_python(PROGRAMS scripts/hrp_follower_node.py scripts/slam_bridge.py scripts/despeckle_map.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
