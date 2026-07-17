@@ -20,10 +20,13 @@
   <arg name="use_hi12"     default="true"/>
   <arg name="rviz"         default="false"/>
 
-  <!-- ===== 公共：rosbridge（WebRop 网关）===== -->
+  <!-- ===== 公共：rosbridge（WebRop 网关 :9090）===== -->
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
     <arg name="port" value="9090"/>
   </include>
+
+  <!-- ===== 公共：ros_tcp_endpoint（HoloLens2 / Unity 网关 :10000，与 rosbridge 同一 master 并行）===== -->
+  <include file="$(find ros_tcp_endpoint)/launch/endpoint.launch"/>
 
   <!-- ===== 公共：twist_mux（手动 /teleop_vel 优先，自动 /cmd_vel_raw 次之 → /cmd_vel）===== -->
   <node name="twist_mux" pkg="twist_mux" type="twist_mux" output="screen">
