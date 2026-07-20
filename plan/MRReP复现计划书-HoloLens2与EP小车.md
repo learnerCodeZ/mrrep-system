@@ -10,6 +10,44 @@
 
 ---
 
+## 📍 当前进度（2026-07-19 更新）
+
+**🎉 Part I + Part II 全部达成！Web 版（WebRop 画线→车）和真机版（HoloLens2 手势画线→车）都通了——MRReP 论文核心在两个客户端复现。**
+
+| 阶段 | 状态 | 说明 |
+|---|---|---|
+| Phase 0 环境 | ✅ 完成 | ROS Noetic + 小车仓库 + WebRop + rosbridge |
+| Phase 1 WebRop Mock | ✅ 完成 | 浏览器模拟跑通 |
+| Phase 2 建图+导航基线 | ✅ 完成 | 实验室已建图；RViz 点目标小车会走 |
+| Phase 3 rosbridge 联通 | ✅ 完成 | WebRop 显示真地图/真车/激光/位姿；含 relocate、朝向、激光修复 |
+| Phase 4 路径跟随节点 | ✅ 完成 | `hrp_follower_node` 集成进 `start.launch`；导航+WASD 手动均可用；降采样0.3m+朝向 |
+| Phase 5 平滑跟踪 | ⬜ 可选 | 逐点法拐点停顿，要丝滑再做 |
+| Phase 6 禁区+变速 | ⬜ 可选 | |
+| **Phase 7 HL2 开发环境** | ✅ 完成 | Unity 2022.3.62f3c1 + MRTK 2.8.3 + OpenXR + MS MR OpenXR 插件 |
+| **Phase 8 ROS-TCP 桥** | ✅ 完成 | `ros_tcp_endpoint` 进 `start.launch`(:10000)，与 nav 同 master；Unity IP=192.168.123.30 |
+| **Phase 9 HL2 手绘 UI** | ✅ 完成（自动模式） | `HandJointUtils.TryGetJointPose` 手势画线 + 自动画线/自动发送（绕过坏 UI）；正经 MRTK UI 待重构 |
+| **Phase 10 QR 坐标对齐** | ⬜ 未做 | 现用车相对(carRelative)对齐，路径贴车；绝对定位待 QR |
+| **Phase 11 上机部署** | ✅ 完成 | UWP/ARM64/IL2CPP/Target SDK 10.0.19041；真机手势画线→车跟随已验证 |
+| Phase 12 双客户端实验 | ⬜ 可选 | |
+
+**额外达成（计划外增强）**：
+- ✅ 一键启动 `start.launch mode:=nav/map/teleop`（三模式合一）+ twist_mux + relay（自主导航时手动接管）。
+- ✅ WebRop：WASD 操控指示器、朝向/激光/relocate 修复、`/teleop_vel` 分离、`/hrp_path` 订阅叠显（红）。
+- ✅ udev 串口规则、动态障碍自动避、地图去噪。
+- ✅ **HL2 真机部署全套**：UWP 构建、OpenXR(UWP)+MS MR OpenXR 插件、沉浸式（非 2D slate）、HandJointUtils.TryGetJointPose、PathMsg、自动画线放激活物体、carRelative。
+- ✅ 文档：UI 设计规范、菜单与画线交互规范、HL2 部署指南(v2 实测)、HL2 迭代方式、为什么切 UWP 等。
+
+**下一步（打磨，按需）**：
+1. **MRTK 原生 UI 重构**：换 PressableButton+ObjectManipulator，按钮可点/拖/缩（替换自动模式）。
+2. **QR 坐标对齐（Phase 10）**：绝对定位（现在是车相对）。
+3. **画线视觉**：球已加亮，待 build 验证。
+4. **录屏演示 + 论文实验**。
+5. **WebRop 协同（L2 共享草稿）**：留底的计划。
+
+> 修复/打通细节见 `D:\R_Project\local\notes\`（含 `PartII_HL2真机打通-20260719`）。
+
+---
+
 ## 0. 一句话方案
 
 ```
@@ -70,7 +108,7 @@ Part II 客户端 = HoloLens2 Unity (经 ROS-TCP,   tcp://IP:10000)
 | **rosbridge_server** | 机器人 PC | WebSocket↔ROS 翻译（给 WebRop） | ✅ apt 装即可 | Part I |
 | **ROS-TCP-Endpoint** | 机器人 PC | 二进制 TCP↔ROS（给 HoloLens2） | ✅ clone 即可 | Part II |
 | **EP_navigation_Ros1** | 机器人 PC | 底盘驱动+SLAM+AMCL+move_base | ✅ 开箱即用，**地图为空**需先建 | 两阶段共用 |
-| **hrp_follower_node.py** | 机器人 PC | 把 `/hrp_path` 转成 move_base 目标序列 | ❌ **需自己写**（核心开发件） | Part I 写，Part II 复用 |
+| **hrp_follower_node.py** | 机器人 PC | 把 `/hrp_path` 转成 move_base 目标序列 | ✅ **已写好**（`mrrep_bridge/scripts/`，集成进 `start.launch`） | Part I 写，Part II 复用 |
 | （可选）自定义全局规划器插件 | 机器人 PC | 让 move_base 直接吃手绘折线（高保真平滑） | ❌ 需自己写 | Phase 5 |
 
 ---
@@ -118,7 +156,7 @@ Part II 客户端 = HoloLens2 Unity (经 ROS-TCP,   tcp://IP:10000)
 >
 > **这一阶段结束，你就有一个能用的"Web 画路径 → 小车跟随"系统，且机器人侧代码在 Part II 零改动复用。**
 
-### Phase 0 — 环境准备（0.5 天）
+### Phase 0 — 环境准备（0.5 天） ✅ 完成
 
 **机器人 PC（Ubuntu 20.04 + ROS Noetic）：**
 ```bash
@@ -150,7 +188,7 @@ npm install      # 装依赖
 
 ---
 
-### Phase 1 — WebRop 离线 Mock 模式跑通（0.5 天，**不依赖机器人**）
+### Phase 1 — WebRop 离线 Mock 模式跑通（0.5 天，**不依赖机器人**） ✅ 完成
 
 目的：先在浏览器里熟悉 WebRop，验证 HRP 画路径、导航、监控 UI 都正常，不用管机器人。
 
@@ -170,7 +208,7 @@ npm run dev      # 开 http://localhost:3000
 
 ---
 
-### Phase 2 — 机器人侧：建图 + 导航基线（1~2 天）
+### Phase 2 — 机器人侧：建图 + 导航基线（1~2 天） ✅ 完成
 
 目的：让小车仓库本身的"RViz 点 2D Nav Goal → 小车开过去"跑通。**这是后续一切的基础**，且 `maps/` 出厂是空的，**必须先建图**。
 
@@ -207,7 +245,7 @@ rviz    # 加载仓库自带的 nav.rviz 配置
 
 ---
 
-### Phase 3 — 起 rosbridge，WebRop 连上机器人（0.5 天）
+### Phase 3 — 起 rosbridge，WebRop 连上机器人（0.5 天） ✅ 完成
 
 目的：让 WebRop 浏览器看到机器人的 `/map`、`/odom`，能在 3D 场景里显示真实地图和机器人位姿。**此时还不能跟路径**，只验证通信。
 
@@ -231,7 +269,7 @@ roslaunch rosbridge_server rosbridge_websocket.launch port:=9090
 
 ---
 
-### Phase 4 — 【核心开发】路径注入层：hrp_follower_node（1~2 天）
+### Phase 4 — 【核心开发】路径注入层：hrp_follower_node（1~2 天） ✅ 完成（核心复现达成 🎯🎯）
 
 目的：写一个 ROS 节点，订阅 `/hrp_path`，把折线**逐点**喂给 move_base，让小车按画的形状走。**这是 MRReP 功能的真正实现，也是 Part II 要复用的核心件。**
 
@@ -339,7 +377,7 @@ rostopic pub /hrp_path nav_msgs/Path "{header: {frame_id: 'map'}, poses: [
 
 ---
 
-### Phase 5 — （进阶）让小车丝滑跟曲线（1~2 天，可选）
+### Phase 5 — （进阶）让小车丝滑跟曲线（1~2 天，可选） ⬜ 未做
 
 **选择 A：自定义全局规划器插件 + TEB via-point（推荐）**
 小车仓库 `teb_local_planner_params.yaml` **已配 via-point**（`weight_viapoint:1.0`、`global_plan_viapoint_sep:0.5`、`holonomic_robot:true`）。写一个 `nav_core::BaseGlobalPlanner` 插件，`makePlan()` 直接返回 `/hrp_path` 原样折线，TEB 就会把它当全局路径并尊重 via-point，平滑跟踪形状。
@@ -351,7 +389,7 @@ rospy 节点吃 `/hrp_path`，纯追踪算法算速度直接发 `/cmd_vel`，绕
 
 ---
 
-### Phase 6 — （进阶）HRZ 禁区 + 分段速度（1 天，可选）
+### Phase 6 — （进阶）HRZ 禁区 + 分段速度（1 天，可选） ⬜ 未做
 
 - **HRZ→costmap**：写节点把 `/hrz_zones` 禁区多边形写进 move_base costmap。WebRop 自带的 `hrz_costmap_node.py` 是空壳，要自己实现。
 - **分段速度**：让 `hrp_follower_node` 读 `/hrp_speeds`，进入对应段时调 TEB 的 `max_vel_x`。
@@ -360,7 +398,10 @@ rospy 节点吃 `/hrp_path`，纯追踪算法算速度直接发 `/cmd_vel`，绕
 
 ### Part I 一键启动
 
-`mrrep_bridge/launch/mrrep_web.launch`：
+> ✅ **实际实现**：已升级为 `mrrep_bridge/launch/start.launch`——`mode:=nav/map/teleop` 三模式合一，含 **twist_mux + topic_tools relay（自主导航时随时 WASD 手动接管）** 和 rosbridge，取代下方 `mrrep_web.launch` 草案。下方草案保留作设计参考。
+> 用法：`roslaunch mrrep_bridge start.launch mode:=nav map_name:=你的地图`。
+
+原计划草案 `mrrep_bridge/launch/mrrep_web.launch`：
 ```xml
 <launch>
   <include file="$(find rm_ep_navigation)/launch/navigation.launch">
@@ -735,25 +776,25 @@ function HololensMarker() {
 
 ## 整体时间估算与里程碑
 
-| 阶段 | 内容 | 预估 | 里程碑 |
-|---|---|---|---|
-| **Part I — WebRop 快速验证** | | | |
-| Phase 0 | 环境 | 0.5 天 | 能编译、能 npm run |
-| Phase 1 | WebRop Mock | 0.5 天 | 浏览器模拟跑通 🎯 |
-| Phase 2 | 建图+导航基线 | 1~2 天 | RViz 点目标小车会走 🎯 |
-| Phase 3 | rosbridge 联通 | 0.5 天 | WebRop 看到真地图/真车 🎯 |
-| Phase 4 | **路径跟随节点** | 1~2 天 | **画线小车跟走（Web 版核心复现）** 🎯🎯 |
-| Phase 5 | 平滑跟踪（可选） | 1~2 天 | 丝滑跟曲线 |
-| Phase 6 | 禁区+变速（可选） | 1 天 | 完整两论文功能 |
-| **Part II — 接入 HoloLens2** | | | |
-| Phase 7 | HL2 开发环境 | 1 天 | Unity+MRTK3 项目能建 |
-| Phase 8 | ROS-TCP 桥 | 0.5 天 | Unity 发 goal 小车响应 🎯 |
-| Phase 9 | HL2 手绘 UI | 2~3 天 | Unity 里画路径能发 🎯 |
-| Phase 10 | QR 坐标对齐 | 1 天 | 画的路径落在正确 map 位置 |
-| Phase 11 | 上机部署集成 | 1 天 | **戴头显画路径小车跟随（最终复现）** 🎯🎯🎯 |
-| Phase 12 | 双客户端实验（可选） | 1 天 | 复现论文 MR vs 2D 对比 |
-| **扩展功能** | | | |
-| 扩展 | WebRop 同屏显示车 + HL2 | 1 天 | 平台看到两个实体位置 🎯 |
+| 阶段 | 内容 | 预估 | 里程碑 | 状态 |
+|---|---|---|---|---|
+| **Part I — WebRop 快速验证** | | | | |
+| Phase 0 | 环境 | 0.5 天 | 能编译、能 npm run | ✅ |
+| Phase 1 | WebRop Mock | 0.5 天 | 浏览器模拟跑通 🎯 | ✅ |
+| Phase 2 | 建图+导航基线 | 1~2 天 | RViz 点目标小车会走 🎯 | ✅ |
+| Phase 3 | rosbridge 联通 | 0.5 天 | WebRop 看到真地图/真车 🎯 | ✅ |
+| Phase 4 | **路径跟随节点** | 1~2 天 | **画线小车跟走（Web 版核心复现）** 🎯🎯 | ✅ |
+| Phase 5 | 平滑跟踪（可选） | 1~2 天 | 丝滑跟曲线 | ⬜ |
+| Phase 6 | 禁区+变速（可选） | 1 天 | 完整两论文功能 | ⬜ |
+| **Part II — 接入 HoloLens2** | | | | |
+| Phase 7 | HL2 开发环境 | 1 天 | Unity+MRTK3 项目能建 | ✅ |
+| Phase 8 | ROS-TCP 桥 | 0.5 天 | Unity 发 goal 小车响应 🎯 | ✅ |
+| Phase 9 | HL2 手绘 UI | 2~3 天 | Unity 里画路径能发 🎯 | ✅（自动模式，正经 MRTK UI 待重构） |
+| Phase 10 | QR 坐标对齐 | 1 天 | 画的路径落在正确 map 位置 | ⬜（现用车相对 carRelative） |
+| Phase 11 | 上机部署集成 | 1 天 | **戴头显画路径小车跟随（最终复现）** 🎯🎯🎯 | ✅ |
+| Phase 12 | 双客户端实验（可选） | 1 天 | 复现论文 MR vs 2D 对比 | ⬜ |
+| **扩展功能** | | | | |
+| 扩展 | WebRop 同屏显示车 + HL2 | 1 天 | 平台看到两个实体位置 🎯 | ⬜ |
 
 **Part I 最小可用（Web 版核心）：Phase 0~4，约 4~6 天。**
 **Part I 完整（含平滑+禁区）：加 Phase 5~6，约 7~10 天。**
@@ -765,15 +806,15 @@ function HololensMarker() {
 
 ## 整体交付物
 
-- [ ] 一张可用的栅格地图（`maps/mymap.{yaml,pgm}`）
-- [ ] `mrrep_bridge` catkin 包：`hrp_follower_node.py` + `mrrep_web.launch` + `mrrep_full.launch`
-- [ ] **Part I 演示**：WebRop 画路径 → 小车跟随（录屏）
+- [x] 一张可用的栅格地图（`maps/mymap.{yaml,pgm}`）—— 实验室已建图
+- [x] `mrrep_bridge` catkin 包：`hrp_follower_node.py` + `start.launch`（三模式）+ twist_mux/relay + `slam_bridge.py` + `despeckle_map.py`
+- [x] **Part I 能力**：WebRop 画路径 → 小车跟随；WASD 手动 + 自主导航 + 手动接管 均可用（「画线→跟走」录屏待补）
 - [ ] HoloLens2 Unity 项目（MRTK3 + ROS-TCP-Connector + OpenXR QR）
 - [ ] **Part II 演示**：戴头显地面画路径 → 小车跟随（录屏）
 - [ ] （可选）自定义全局规划器插件源码
 - [ ] （可选）双客户端对照实验数据
 - [ ] （扩展）HL2 位姿发布器 + WebRop HL2 标记（同屏显示车 + HL2）
-- [ ] 本计划书 + 踩坑记录
+- [x] 本计划书 + 踩坑记录（含 twist_mux/cmd_vel、udev、朝向/激光/relocate 等修复，见 `local/notes`）
 
 ---
 
