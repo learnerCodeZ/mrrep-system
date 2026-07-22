@@ -25,7 +25,7 @@
 | Phase 6 禁区+变速 | ⬜ 可选 | |
 | **Phase 7 HL2 开发环境** | ✅ 完成 | Unity 2022.3.62f3c1 + MRTK 2.8.3 + OpenXR + MS MR OpenXR 插件 |
 | **Phase 8 ROS-TCP 桥** | ✅ 完成 | `ros_tcp_endpoint` 进 `start.launch`(:10000)，与 nav 同 master；Unity IP=192.168.123.30 |
-| **Phase 9 HL2 手绘 UI** | ✅ 完成（自动模式） | `HandJointUtils.TryGetJointPose` 手势画线 + 自动画线/自动发送（绕过坏 UI）；正经 MRTK UI 待重构 |
+| **Phase 9 HL2 手绘 UI** | ✅ 完成 | `HandJointUtils.TryGetJointPose` 手势画线 + SimpleHandMenu手掌菜单（HandConstraint跟手+点击触发）；自动模式已禁用；Holographic Remoting配置完成 |
 | **Phase 10 QR 坐标对齐** | ⬜ 未做 | 现用车相对(carRelative)对齐，路径贴车；绝对定位待 QR |
 | **Phase 11 上机部署** | ✅ 完成 | UWP/ARM64/IL2CPP/Target SDK 10.0.19041；真机手势画线→车跟随已验证 |
 | Phase 12 双客户端实验 | ⬜ 可选 | |
@@ -35,12 +35,15 @@
 - ✅ WebRop：WASD 操控指示器、朝向/激光/relocate 修复、`/teleop_vel` 分离、`/hrp_path` 订阅叠显（红）。
 - ✅ udev 串口规则、动态障碍自动避、地图去噪。
 - ✅ **HL2 真机部署全套**：UWP 构建、OpenXR(UWP)+MS MR OpenXR 插件、沉浸式（非 2D slate）、HandJointUtils.TryGetJointPose、PathMsg、自动画线放激活物体、carRelative。
-- ✅ 文档：UI 设计规范、菜单与画线交互规范、HL2 部署指南(v2 实测)、HL2 迭代方式、为什么切 UWP 等。
+- ✅ **SimpleHandMenu 手掌菜单**：HandConstraint跟手+点击触发Add/Clear/Send/Back。
+- ✅ **Holographic Remoting 配置**：OpenXR+Hand Tracking+Remoting for Play Mode，免Build快速迭代。
+- ✅ **空间网格/环境反射已禁用**：画面清晰，只显示真实世界+3D物体。
+- ✅ 文档：UI 设计规范、菜单与画线交互规范、HL2 部署指南(v2 实测)、HL2 迭代方式（含Remoting配置步骤+微软参考链接）、为什么切 UWP 等。
 
 **下一步（打磨，按需）**：
-1. **MRTK 原生 UI 重构**：换 PressableButton+ObjectManipulator，按钮可点/拖/缩（替换自动模式）。
+1. **测试完整画线流程**：SimpleHandMenu Add→画线→Send→小车跟随（HL2真机验证）。
 2. **QR 坐标对齐（Phase 10）**：绝对定位（现在是车相对）。
-3. **画线视觉**：球已加亮，待 build 验证。
+3. **MRTK PressableButton 集成**：确认SimpleHandMenu工作后，换成真正的MRTK按钮。
 4. **录屏演示 + 论文实验**。
 5. **WebRop 协同（L2 共享草稿）**：留底的计划。
 
